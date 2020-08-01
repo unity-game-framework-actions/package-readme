@@ -1,0 +1,4 @@
+dependency: |
+   - `{dependency.name}`: `{dependency.version}`
+dependenciesEmpty: |
+   - N/A
