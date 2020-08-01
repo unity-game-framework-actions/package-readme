@@ -1,5 +1,5 @@
-name: 'Draft'
-description: 'No description.'
+name: 'Package Readme'
+description: 'Creates package readme.'
 inputs:
   token:
     description: 'GitHub token used by action.'
