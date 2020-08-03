@@ -1,0 +1,12 @@
+# Dependency format of package dependencies.
+# Available values:
+#   package: Package object.
+#   dependency: Dependency object.
+#     name: Name of dependency.
+#     version: Version of dependency.
+dependency: |
+   - `{dependency.name}`: `{dependency.version}`
+
+# Used instead of 'dependency' format when no any dependencies found.
+dependenciesEmpty: |
+   - N/A
