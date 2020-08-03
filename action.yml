@@ -12,7 +12,7 @@ inputs:
     description: 'GitHub token used by action.'
     default: ${{ github.token }}
     required: true
-  config:
+  configPath:
     description: 'Path to config with generate settings.'
     default: .github/package-readme.yml
     required: true
