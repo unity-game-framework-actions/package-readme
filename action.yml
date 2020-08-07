@@ -1,10 +1,10 @@
 name: 'Package Readme'
 description: 'Creates package readme.'
 inputs:
-  package:
+  packagePath:
     description: 'Path to package.json file.'
     required: true
-  template:
+  templatePath:
     description: 'Path to readme template file.'
     default: .github/package-readme.md
     required: true

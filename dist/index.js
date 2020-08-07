@@ -5051,10 +5051,10 @@ run();
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const packagePath = core.getInput('package', { required: true });
-            const template = core.getInput('template', { required: true });
+            const packagePath = core.getInput('packagePath', { required: true });
+            const templatePath = core.getInput('templatePath', { required: true });
             const config = yield utility.readConfig();
-            const result = yield action.createReadme(packagePath, template, config);
+            const result = yield action.createReadme(packagePath, templatePath, config);
             yield utility.setOutput(result);
         }
         catch (error) {

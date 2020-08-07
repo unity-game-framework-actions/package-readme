@@ -6,10 +6,10 @@ run()
 
 async function run(): Promise<void> {
   try {
-    const packagePath = core.getInput('package', {required: true})
-    const template = core.getInput('template', {required: true})
+    const packagePath = core.getInput('packagePath', {required: true})
+    const templatePath = core.getInput('templatePath', {required: true})
     const config = await utility.readConfig()
-    const result = await action.createReadme(packagePath, template, config)
+    const result = await action.createReadme(packagePath, templatePath, config)
 
     await utility.setOutput(result)
   } catch (error) {
