@@ -66,6 +66,21 @@ export function parse(value: string, type: string): any {
   }
 }
 
+export async function getInput(): Promise<any> {
+  const input = core.getInput('input', {required: true})
+  const inputSource = core.getInput('inputSource', {required: true})
+  const inputType = core.getInput('inputType', {required: true})
+
+  switch (inputSource) {
+    case 'value':
+      return parse(input, inputType)
+    case 'file':
+      return await readData(input, inputType)
+    default:
+      throw `Invalid output type: '${inputSource}'.`
+  }
+}
+
 export async function setOutput(value: string) {
   const type = core.getInput('outputType', {required: true})
 
@@ -176,14 +191,33 @@ export function getOctokit(): any {
   return github.getOctokit(token)
 }
 
+export async function containsInBranch(owner: string, repo: string, branch: string, target: string): Promise<boolean> {
+  const octokit = getOctokit()
+
+  try {
+    const response = await octokit.request(`GET /repos/${owner}/${repo}/compare/${branch}...${target}`)
+    const data = response.data
+
+    if (data.hasOwnProperty('status')) {
+      const status = data.status
+
+      return status === 'behind' || status === 'identical'
+    }
+
+    return false
+  } catch {
+    return false
+  }
+}
+
 export async function getMilestone(owner: string, repo: string, milestoneNumberOrTitle: string): Promise<any> {
   const octokit = getOctokit()
 
   try {
-    const milestones = await octokit.paginate(`GET /repos/${owner}/${repo}/milestones/${milestoneNumberOrTitle}`)
+    const response = await octokit.request(`GET /repos/${owner}/${repo}/milestones/${milestoneNumberOrTitle}`)
 
-    return milestones[0]
-  } catch (error) {
+    return response.data
+  } catch {
     const milestones = await octokit.paginate(`GET /repos/${owner}/${repo}/milestones?state=all`)
 
     for (const milestone of milestones) {
@@ -232,19 +266,17 @@ export async function getRelease(owner: string, repo: string, idOrTag: string): 
   const octokit = getOctokit()
 
   try {
-    const releases = await octokit.paginate(`GET /repos/${owner}/${repo}/releases/${idOrTag}`)
+    const response = await octokit.request(`GET /repos/${owner}/${repo}/releases/${idOrTag}`)
 
-    return releases[0]
-  } catch (error) {
-    const releases = await octokit.paginate(`GET /repos/${owner}/${repo}/releases`)
+    return response.data
+  } catch {
+    try {
+      const response = await octokit.request(`GET /repos/${owner}/${repo}/releases/tags/${idOrTag}`)
 
-    for (const release of releases) {
-      if (release.tag_name === idOrTag) {
-        return release
-      }
+      return response.data
+    } catch {
+      throw `Release by the specified id or tag name not found: '${idOrTag}'.`
     }
-
-    throw `Release by the specified id or tag name not found: '${idOrTag}'.`
   }
 }
 
@@ -252,6 +284,19 @@ export async function getReleases(owner: string, repo: string): Promise<any[]> {
   const octokit = getOctokit()
 
   return await octokit.paginate(`GET /repos/${owner}/${repo}/releases`)
+}
+
+export async function getReleasesByBranch(owner: string, repo: string, branch: string): Promise<any[]> {
+  const releases = await getReleases(owner, repo)
+  const result = []
+
+  for (const release of releases) {
+    if (await containsInBranch(owner, repo, branch, release.tag_name)) {
+      result.push(release)
+    }
+  }
+
+  return result
 }
 
 export async function updateRelease(owner: string, repo: string, release: any): Promise<void> {
@@ -268,6 +313,25 @@ export async function updateRelease(owner: string, repo: string, release: any): 
     draft: release.draft,
     prerelease: release.prerelease
   })
+}
+
+export async function getTags(owner: string, repo: string): Promise<any[]> {
+  const octokit = getOctokit()
+
+  return await octokit.paginate(`GET /repos/${owner}/${repo}/tags`)
+}
+
+export async function getTagsByBranch(owner: string, repo: string, branch: string): Promise<any[]> {
+  const tags = await getTags(owner, repo)
+  const result = []
+
+  for (const tag of tags) {
+    if (await containsInBranch(owner, repo, branch, tag.name)) {
+      result.push(tag)
+    }
+  }
+
+  return result
 }
 
 export async function dispatch(owner: string, repo: string, eventType: string, payload: any): Promise<void> {
