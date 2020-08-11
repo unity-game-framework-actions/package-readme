@@ -3762,32 +3762,16 @@ exports.createReadme = void 0;
 const utility = __importStar(__webpack_require__(880));
 function createReadme(data, config) {
     return __awaiter(this, void 0, void 0, function* () {
-        let format = '';
-        const body = yield getBody(config);
-        format = formatBody(data, body, config);
+        const values = {
+            package: data,
+            dependenciesFormatted: formatDependencies(data, config)
+        };
+        let format = utility.formatValues(config.body, values);
         format = utility.normalize(format);
         return format;
     });
 }
 exports.createReadme = createReadme;
-function getBody(config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (yield utility.exists(config.body)) {
-            return yield utility.read(config.body);
-        }
-        else {
-            return config.body;
-        }
-    });
-}
-function formatBody(data, body, config) {
-    const values = {
-        package: data,
-        dependenciesFormatted: formatDependencies(data, config)
-    };
-    const format = utility.formatValues(body, values);
-    return format;
-}
 function formatDependencies(packageData, config) {
     let format = '';
     if (packageData.dependencies != null) {

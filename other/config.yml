@@ -1,5 +1,4 @@
 # Readme format of package.
-# Can be used as path to template file.
 # Available values:
 #  package: Package object.
 #  dependenciesFormatted: Formatted dependencies as text.
