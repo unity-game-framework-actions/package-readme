@@ -1,19 +1,35 @@
 import * as utility from './utility'
 
-export async function createReadme(packagePath: string, templatePath: string, config: any): Promise<string> {
-  const packageData = await utility.readData(packagePath, 'json')
-  const template = await utility.read(templatePath)
-  const values = {
-    package: packageData,
-    dependenciesFormatted: formatDependencies(packageData, config)
-  }
+export async function createReadme(data: any, config: any): Promise<string> {
+  let format = ''
+  const body = await getBody(config)
 
-  const format = utility.formatValues(template, values)
+  format = formatBody(data, body, config)
+  format = utility.normalize(format)
 
   return format
 }
 
-export function formatDependencies(packageData: any, config: any) {
+async function getBody(config: any): Promise<string> {
+  if (await utility.exists(config.body)) {
+    return await utility.read(config.body)
+  } else {
+    return config.body
+  }
+}
+
+function formatBody(data: any, body: string, config: any) {
+  const values = {
+    package: data,
+    dependenciesFormatted: formatDependencies(data, config)
+  }
+
+  const format = utility.formatValues(body, values)
+
+  return format
+}
+
+function formatDependencies(packageData: any, config: any) {
   let format = ''
 
   if (packageData.dependencies != null) {
