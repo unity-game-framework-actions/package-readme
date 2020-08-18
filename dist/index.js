@@ -3758,17 +3758,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatDependencies = exports.createReadme = void 0;
+exports.createReadme = void 0;
 const utility = __importStar(__webpack_require__(880));
-function createReadme(packagePath, templatePath, config) {
+function createReadme(data, config) {
     return __awaiter(this, void 0, void 0, function* () {
-        const packageData = yield utility.readData(packagePath, 'json');
-        const template = yield utility.read(templatePath);
         const values = {
-            package: packageData,
-            dependenciesFormatted: formatDependencies(packageData, config)
+            package: data,
+            dependenciesFormatted: formatDependencies(data, config)
         };
-        const format = utility.formatValues(template, values);
+        let format = utility.formatValues(config.body, values);
+        format = utility.normalize(format);
         return format;
     });
 }
@@ -3796,7 +3795,6 @@ function formatDependencies(packageData, config) {
     }
     return format;
 }
-exports.formatDependencies = formatDependencies;
 
 
 /***/ }),
@@ -5051,10 +5049,9 @@ run();
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const packagePath = core.getInput('package', { required: true });
-            const template = core.getInput('template', { required: true });
-            const config = yield utility.readConfig();
-            const result = yield action.createReadme(packagePath, template, config);
+            const data = yield utility.getInputAny();
+            const config = yield utility.readConfigAny();
+            const result = yield action.createReadme(data, config);
             yield utility.setOutput(result);
         }
         catch (error) {
@@ -9884,18 +9881,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dispatch = exports.updateRelease = exports.getReleases = exports.getRelease = exports.updateContent = exports.getMilestoneIssues = exports.getMilestone = exports.getOctokit = exports.formatDate = exports.getOwnerAndRepo = exports.getRepository = exports.setValue = exports.getValue = exports.indent = exports.formatValues = exports.normalize = exports.setOutputFile = exports.setOutputAction = exports.setOutputByType = exports.setOutput = exports.parse = exports.format = exports.write = exports.writeData = exports.read = exports.readData = exports.readConfig = exports.merge = void 0;
+exports.dispatch = exports.getTagsByBranch = exports.getTags = exports.updateRelease = exports.getReleasesByBranch = exports.getReleases = exports.getRelease = exports.updateContent = exports.getMilestoneIssues = exports.getMilestone = exports.containsInBranch = exports.getOctokit = exports.formatDate = exports.getOwnerAndRepo = exports.getRepository = exports.setValue = exports.getValue = exports.indent = exports.formatValues = exports.normalize = exports.setOutputFile = exports.setOutputAction = exports.setOutputByType = exports.setOutput = exports.getInput = exports.getInputAny = exports.parse = exports.parseAny = exports.format = exports.write = exports.writeData = exports.read = exports.readData = exports.readDataAny = exports.getDataAny = exports.readConfig = exports.readConfigAny = exports.merge = exports.exists = void 0;
 const core = __importStar(__webpack_require__(840));
 const github = __importStar(__webpack_require__(837));
 const fs_1 = __webpack_require__(747);
+const ofs = __importStar(__webpack_require__(747));
 const yaml = __importStar(__webpack_require__(604));
 const eol = __importStar(__webpack_require__(638));
 const indent_string_1 = __importDefault(__webpack_require__(110));
 const object_path_1 = __importDefault(__webpack_require__(461));
+function exists(path) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield fs_1.promises.access(path, ofs.constants.F_OK);
+            return true;
+        }
+        catch (_a) {
+            return false;
+        }
+    });
+}
+exports.exists = exists;
 function merge(target, source) {
     return Object.assign(target, source);
 }
 exports.merge = merge;
+function readConfigAny() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const value = core.getInput('config');
+        const result = yield getDataAny(value);
+        return result.data;
+    });
+}
+exports.readConfigAny = readConfigAny;
 function readConfig() {
     return __awaiter(this, void 0, void 0, function* () {
         const path = core.getInput('configPath', { required: true });
@@ -9904,6 +9922,33 @@ function readConfig() {
     });
 }
 exports.readConfig = readConfig;
+function getDataAny(value) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (yield exists(value)) {
+            const data = yield readDataAny(value);
+            return data;
+        }
+        else {
+            const data = parseAny(value);
+            return {
+                type: data.type,
+                data: data.result
+            };
+        }
+    });
+}
+exports.getDataAny = getDataAny;
+function readDataAny(path) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const value = yield read(path);
+        const data = parseAny(value);
+        return {
+            type: data.type,
+            data: data.result
+        };
+    });
+}
+exports.readDataAny = readDataAny;
 function readData(path, type) {
     return __awaiter(this, void 0, void 0, function* () {
         const value = yield read(path);
@@ -9935,14 +9980,34 @@ exports.write = write;
 function format(value, type) {
     switch (type) {
         case 'json':
-            return JSON.stringify(value);
+            return JSON.stringify(value, null, 2);
         case 'yaml':
             return yaml.dump(value);
         default:
-            throw `Invalid parse type: '${type}'.`;
+            throw `Invalid format type: '${type}'.`;
     }
 }
 exports.format = format;
+function parseAny(value) {
+    try {
+        return {
+            type: 'json',
+            result: JSON.parse(value)
+        };
+    }
+    catch (_a) {
+        try {
+            return {
+                type: 'yaml',
+                result: yaml.load(value)
+            };
+        }
+        catch (_b) {
+            throw `Invalid parse value, expected Json or Yaml.`;
+        }
+    }
+}
+exports.parseAny = parseAny;
 function parse(value, type) {
     if (value === '') {
         return {};
@@ -9957,10 +10022,37 @@ function parse(value, type) {
     }
 }
 exports.parse = parse;
+function getInputAny() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const input = core.getInput('input', { required: true });
+        const result = yield getDataAny(input);
+        return result.data;
+    });
+}
+exports.getInputAny = getInputAny;
+function getInput() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const input = core.getInput('input', { required: true });
+        const inputSource = core.getInput('inputSource', { required: true });
+        const inputType = core.getInput('inputType', { required: true });
+        switch (inputSource) {
+            case 'value':
+                return parse(input, inputType);
+            case 'file':
+                return yield readData(input, inputType);
+            default:
+                throw `Invalid output type: '${inputSource}'.`;
+        }
+    });
+}
+exports.getInput = getInput;
 function setOutput(value) {
     return __awaiter(this, void 0, void 0, function* () {
-        const type = core.getInput('outputType', { required: true });
-        yield setOutputByType(type, value);
+        core.setOutput('result', value);
+        const output = core.getInput('output');
+        if (output !== '') {
+            yield write(output, value);
+        }
     });
 }
 exports.setOutput = setOutput;
@@ -10060,14 +10152,32 @@ function getOctokit() {
     return github.getOctokit(token);
 }
 exports.getOctokit = getOctokit;
+function containsInBranch(owner, repo, branch, target) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const octokit = getOctokit();
+        try {
+            const response = yield octokit.request(`GET /repos/${owner}/${repo}/compare/${branch}...${target}`);
+            const data = response.data;
+            if (data.hasOwnProperty('status')) {
+                const status = data.status;
+                return status === 'behind' || status === 'identical';
+            }
+            return false;
+        }
+        catch (_a) {
+            return false;
+        }
+    });
+}
+exports.containsInBranch = containsInBranch;
 function getMilestone(owner, repo, milestoneNumberOrTitle) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = getOctokit();
         try {
-            const milestones = yield octokit.paginate(`GET /repos/${owner}/${repo}/milestones/${milestoneNumberOrTitle}`);
-            return milestones[0];
+            const response = yield octokit.request(`GET /repos/${owner}/${repo}/milestones/${milestoneNumberOrTitle}`);
+            return response.data;
         }
-        catch (error) {
+        catch (_a) {
             const milestones = yield octokit.paginate(`GET /repos/${owner}/${repo}/milestones?state=all`);
             for (const milestone of milestones) {
                 if (milestone.title === milestoneNumberOrTitle) {
@@ -10117,17 +10227,17 @@ function getRelease(owner, repo, idOrTag) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = getOctokit();
         try {
-            const releases = yield octokit.paginate(`GET /repos/${owner}/${repo}/releases/${idOrTag}`);
-            return releases[0];
+            const response = yield octokit.request(`GET /repos/${owner}/${repo}/releases/${idOrTag}`);
+            return response.data;
         }
-        catch (error) {
-            const releases = yield octokit.paginate(`GET /repos/${owner}/${repo}/releases`);
-            for (const release of releases) {
-                if (release.tag_name === idOrTag) {
-                    return release;
-                }
+        catch (_a) {
+            try {
+                const response = yield octokit.request(`GET /repos/${owner}/${repo}/releases/tags/${idOrTag}`);
+                return response.data;
             }
-            throw `Release by the specified id or tag name not found: '${idOrTag}'.`;
+            catch (_b) {
+                throw `Release by the specified id or tag name not found: '${idOrTag}'.`;
+            }
         }
     });
 }
@@ -10139,6 +10249,19 @@ function getReleases(owner, repo) {
     });
 }
 exports.getReleases = getReleases;
+function getReleasesByBranch(owner, repo, branch) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const releases = yield getReleases(owner, repo);
+        const result = [];
+        for (const release of releases) {
+            if (yield containsInBranch(owner, repo, branch, release.tag_name)) {
+                result.push(release);
+            }
+        }
+        return result;
+    });
+}
+exports.getReleasesByBranch = getReleasesByBranch;
 function updateRelease(owner, repo, release) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = getOctokit();
@@ -10156,6 +10279,26 @@ function updateRelease(owner, repo, release) {
     });
 }
 exports.updateRelease = updateRelease;
+function getTags(owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const octokit = getOctokit();
+        return yield octokit.paginate(`GET /repos/${owner}/${repo}/tags`);
+    });
+}
+exports.getTags = getTags;
+function getTagsByBranch(owner, repo, branch) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const tags = yield getTags(owner, repo);
+        const result = [];
+        for (const tag of tags) {
+            if (yield containsInBranch(owner, repo, branch, tag.name)) {
+                result.push(tag);
+            }
+        }
+        return result;
+    });
+}
+exports.getTagsByBranch = getTagsByBranch;
 function dispatch(owner, repo, eventType, payload) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = getOctokit();

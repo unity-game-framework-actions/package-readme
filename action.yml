@@ -1,36 +1,23 @@
 name: 'Package Readme'
 description: 'Creates package readme.'
 inputs:
-  package:
-    description: 'Path to package.json file.'
-    required: true
-  template:
-    description: 'Path to readme template file.'
-    default: .github/package-readme.md
+  input:
+    description: 'Input package, can be specific value or file path. (Possible representation types: "Json" or "Yaml".)'
     required: true
   token:
     description: 'GitHub token used by action.'
     default: ${{ github.token }}
     required: true
-  configPath:
-    description: 'Path to config with generate settings.'
+  config:
+    description: 'Path to file or config as value with generate settings. (Possible representation types: "Json" or "Yaml".)'
     default: .github/package-readme.yml
     required: true
-  configType:
-    description: 'Type of config representation, possible values "yaml" or "json".'
-    default: yaml
-    required: true
-  outputType:
-    description: 'Type of result output, possible values "action", "file" or "all".'
-    default: action
-    required: true
-  outputPath:
-    description: 'Path of output file.'
-    default: ${{ github.action }}
-    required: true
+  output:
+    description: 'Path to output result as file.'
+    required: false
 outputs:
   result:
-    description: 'Readme generation result.'
+    description: 'Action result.'
 runs:
   using: 'node12'
   main: 'dist/index.js'
