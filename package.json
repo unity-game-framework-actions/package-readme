@@ -1,6 +1,7 @@
 {
   "name": "package-readme",
   "version": "0.1.0",
+  "displayName": "Package Readme",
   "description": "Creates package readme.",
   "main": "lib/main.js",
   "scripts": {
