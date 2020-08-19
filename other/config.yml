@@ -1,30 +1,27 @@
 # Readme format of package.
 # Available values:
-#  package: Package object.
-#  dependenciesFormatted: Formatted dependencies as text.
+#   context: Context object passed into action as 'context' parameter.
+#   package: Package object.
+#   dependenciesFormatted: Formatted dependencies as text.
 body: |
-   # {package.name}
+  # {package.name}
 
-   {package.displayName}
+  {package.displayName}
 
-   ## Info
-   - **Version**: `{package.version}`
-   - **Unity**: `{package.unity}`
+  ## Info
+  - **Version**: `{package.version}`
 
-   ### Dependencies
+  ### Dependencies
 
-   {dependenciesFormatted}
+  {dependenciesFormatted}
 
-   ### Description
+  ### Description
 
-   {package.description}
-
-   ## How to Install
-
-   Read about how to install any packages from the `Unity Game Framework` registry: [Install Package](https://github.com/unity-game-framework/ugf-documentation/wiki/Install-Package).
+  {package.description}
 
 # Dependency format of package dependencies.
 # Available values:
+#   context: Context object passed into action as 'context' parameter.
 #   package: Package object.
 #   dependency: Dependency object.
 #     name: Name of dependency.

@@ -1,9 +1,10 @@
 import * as utility from './utility'
 
-export async function createReadme(data: any, config: any): Promise<string> {
+export async function createReadme(data: any, config: any, context: any): Promise<string> {
   const values = {
+    context: context,
     package: data,
-    dependenciesFormatted: formatDependencies(data, config)
+    dependenciesFormatted: formatDependencies(data, config, context)
   }
 
   let format = utility.formatValues(config.body, values)
@@ -13,7 +14,7 @@ export async function createReadme(data: any, config: any): Promise<string> {
   return format
 }
 
-function formatDependencies(packageData: any, config: any) {
+function formatDependencies(packageData: any, config: any, context: any) {
   let format = ''
 
   if (packageData.dependencies != null) {
@@ -23,6 +24,7 @@ function formatDependencies(packageData: any, config: any) {
       for (const key of keys) {
         const value = packageData.dependencies[key]
         const values = {
+          context: context,
           package: packageData,
           dependency: {
             name: key,
