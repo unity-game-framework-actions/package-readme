@@ -11,7 +11,6 @@ Available values:
 
 ## Info
  - **Version**: `{package.version}`
- - **Unity**: `{package.unity}`
 
 ### Dependencies
 
@@ -20,7 +19,3 @@ Available values:
 ### Description
 
 {package.description}
-
-## How to Install
-
-Read about how to install any packages from the `Unity Game Framework` registry: [Install Package](https://github.com/unity-game-framework/ugf-documentation/wiki/Install-Package).
